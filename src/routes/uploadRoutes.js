@@ -4,6 +4,21 @@ const path = require('path');
 const router = express.Router();
 const upload = require('../middlewares/uploadMiddleware');
 const { protect } = require('../middlewares/authMiddleware');
+const { v2: cloudinary } = require('cloudinary');
+
+// Configure Cloudinary from environment
+// Required: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+if (process.env.CLOUDINARY_URL) {
+  // Use single URL config; set secure URLs
+  cloudinary.config({ secure: true });
+} else {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+}
 
 const readBytes = async (filePath, n = 12) => {
   const fh = await fs.promises.open(filePath, 'r');
@@ -50,13 +65,33 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       await unlinkSafe(absPath);
       return res.status(400).json({ msg: 'Suspicious or invalid image file' });
     }
-    const filePath = req.file.path.replace(/\\/g, '/'); // Normalize path for Windows
+    // Determine Cloudinary folder
+    const baseFolder = process.env.CLOUDINARY_FOLDER || 'tarmuz/uploads';
+    const subFolder = path.basename(path.dirname(absPath)); // e.g., 'general'
+    const folder = `${baseFolder}/${subFolder}`;
+
+    // Public ID without extension for deterministic naming
+    const nameNoExt = path.basename(req.file.filename, path.extname(req.file.filename));
+    const publicId = `${folder}/${nameNoExt}`;
+
+    const result = await cloudinary.uploader.upload(absPath, {
+      public_id: publicId,
+      overwrite: true,
+      resource_type: 'image',
+    });
+    // Cleanup local temp file
+    await unlinkSafe(absPath);
+
     res.json({
       msg: 'File uploaded successfully',
-      filePath,
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      size: req.file.size
+      secure_url: result.secure_url,
+      url: result.secure_url,
+      filename: result.public_id,
+      original_filename: req.file.originalname,
+      size: req.file.size,
+      format: result.format,
+      width: result.width,
+      height: result.height,
     });
   } catch (error) {
     res.status(500).json({ msg: error.message });
@@ -69,7 +104,7 @@ router.post('/multiple', protect, upload.array('images', 10), async (req, res) =
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ msg: 'No files uploaded' });
     }
-    const safe = [];
+    const uploaded = [];
     for (const f of req.files) {
       const absPath = path.resolve(f.path);
       const detected = await detectImageMime(absPath);
@@ -77,17 +112,35 @@ router.post('/multiple', protect, upload.array('images', 10), async (req, res) =
         await unlinkSafe(absPath);
         continue; // skip unsafe file
       }
-      safe.push({
-        filePath: f.path.replace(/\\/g, '/'),
-        filename: f.filename,
-        originalName: f.originalname,
-        size: f.size
-      });
+      const baseFolder = process.env.CLOUDINARY_FOLDER || 'tarmuz/uploads';
+      const subFolder = path.basename(path.dirname(absPath));
+      const folder = `${baseFolder}/${subFolder}`;
+      const nameNoExt = path.basename(f.filename, path.extname(f.filename));
+      const publicId = `${folder}/${nameNoExt}`;
+      try {
+        const result = await cloudinary.uploader.upload(absPath, {
+          public_id: publicId,
+          overwrite: true,
+          resource_type: 'image',
+        });
+        uploaded.push({
+          secure_url: result.secure_url,
+          url: result.secure_url,
+          filename: result.public_id,
+          original_filename: f.originalname,
+          size: f.size,
+          format: result.format,
+          width: result.width,
+          height: result.height,
+        });
+      } finally {
+        await unlinkSafe(absPath);
+      }
     }
-    if (safe.length === 0) {
+    if (uploaded.length === 0) {
       return res.status(400).json({ msg: 'All files were invalid' });
     }
-    res.json({ msg: 'Files uploaded successfully', files: safe });
+    res.json({ msg: 'Files uploaded successfully', files: uploaded });
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }

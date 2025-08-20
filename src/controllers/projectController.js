@@ -1,5 +1,28 @@
 const Project = require('../models/Project');
 const { createOrGetCategory } = require('./categoryController');
+const { v2: cloudinary } = require('cloudinary');
+const path = require('path');
+const fs = require('fs');
+
+// Configure Cloudinary (supports single URL or individual vars)
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({ secure: true });
+} else {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+}
+
+const unlinkSafe = async (p) => { try { await fs.promises.unlink(p); } catch (_) {} };
+const baseFolder = process.env.CLOUDINARY_FOLDER || 'tarmuz/uploads';
+const toPublicId = (absPath, filename) => {
+  const subFolder = path.basename(path.dirname(absPath)); // e.g., 'general'
+  const nameNoExt = path.basename(filename, path.extname(filename));
+  return `${baseFolder}/${subFolder}/${nameNoExt}`;
+};
 
 // Get all projects
 exports.getProjects = async (req, res) => {
@@ -39,14 +62,29 @@ exports.createProject = async (req, res) => {
     }
 
     const project = new Project(req.body);
-    if (req.files) {
-      // Use the full path including the category subdirectory
-      project.images = req.files.map(f => '/' + f.path.replace(/\\/g, '/'));
-      // If cover is not set and we have files, use the first image as cover
-      if (!project.cover && req.files.length > 0) {
-        project.cover = '/' + req.files[0].path.replace(/\\/g, '/');
+
+    if (req.files && req.files.length > 0) {
+      const uploadedUrls = [];
+      for (const f of req.files) {
+        const abs = path.resolve(f.path);
+        const publicId = toPublicId(abs, f.filename);
+        try {
+          const result = await cloudinary.uploader.upload(abs, {
+            public_id: publicId,
+            overwrite: true,
+            resource_type: 'image',
+          });
+          uploadedUrls.push(result.secure_url);
+        } finally {
+          await unlinkSafe(abs);
+        }
+      }
+      project.images = uploadedUrls;
+      if (!project.cover && uploadedUrls.length > 0) {
+        project.cover = uploadedUrls[0];
       }
     }
+
     await project.save();
     res.status(201).json(project);
   } catch (err) {
@@ -62,31 +100,45 @@ exports.createProject = async (req, res) => {
 exports.updateProject = async (req, res) => {
   try {
     const updateData = { ...req.body, updatedAt: Date.now() };
-    
+
     // Auto-create category if it doesn't exist and category is being updated
     if (updateData.category) {
       await createOrGetCategory(updateData.category, updateData.category_ar);
     }
-    
-    // Handle new uploaded images
+
+    // Handle new uploaded images -> upload to Cloudinary
     if (req.files && req.files.length > 0) {
-      updateData.images = req.files.map(f => '/' + f.path.replace(/\\/g, '/'));
-      // If cover is not set and we have files, use the first image as cover
-      if (!updateData.cover) {
-        updateData.cover = '/' + req.files[0].path.replace(/\\/g, '/');
+      const uploadedUrls = [];
+      for (const f of req.files) {
+        const abs = path.resolve(f.path);
+        const publicId = toPublicId(abs, f.filename);
+        try {
+          const result = await cloudinary.uploader.upload(abs, {
+            public_id: publicId,
+            overwrite: true,
+            resource_type: 'image',
+          });
+          uploadedUrls.push(result.secure_url);
+        } finally {
+          await unlinkSafe(abs);
+        }
+      }
+      updateData.images = uploadedUrls;
+      if (!updateData.cover && uploadedUrls.length > 0) {
+        updateData.cover = uploadedUrls[0];
       }
     }
-    
+
     const project = await Project.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true }
     );
-    
+
     if (!project) {
       return res.status(404).json({ msg: 'Project not found' });
     }
-    
+
     res.json(project);
   } catch (err) {
     if (err.name === 'ValidationError') {

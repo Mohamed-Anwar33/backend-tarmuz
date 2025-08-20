@@ -5,7 +5,9 @@ require('dotenv').config();
 
 // Configure Cloudinary
 cloudinary.config({
-  cloudinary_url: process.env.CLOUDINARY_URL || 'cloudinary://693958361264978:ouRfBFDF-05AFts5VNF-vExDgVI@dvhse3qgv'
+  cloud_name: 'dvhse3qgv',
+  api_key: '693958361264978',
+  api_secret: 'ouRfBFDF-05AFts5VNF-vExDgVI'
 });
 
 async function main() {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Team = require('../models/Team');
-const auth = require('../middlewares/auth');
+const { protect } = require('../middlewares/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 
@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
 // @route   GET /api/team/admin
 // @desc    Get all team members (including inactive) for admin
 // @access  Private
-router.get('/admin', auth, async (req, res) => {
+router.get('/admin', protect, async (req, res) => {
   try {
     const teamMembers = await Team.find()
       .sort({ order: 1, createdAt: 1 });
@@ -84,7 +84,7 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/team
 // @desc    Create new team member
 // @access  Private
-router.post('/', auth, upload.single('image'), async (req, res) => {
+router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     const {
       name,
@@ -134,7 +134,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 // @route   PUT /api/team/:id
 // @desc    Update team member
 // @access  Private
-router.put('/:id', auth, upload.single('image'), async (req, res) => {
+router.put('/:id', protect, upload.single('image'), async (req, res) => {
   try {
     const {
       name,
@@ -191,7 +191,7 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
 // @route   DELETE /api/team/:id
 // @desc    Delete team member
 // @access  Private
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
   try {
     const teamMember = await Team.findById(req.params.id);
     if (!teamMember) {
@@ -212,7 +212,7 @@ router.delete('/:id', auth, async (req, res) => {
 // @route   PUT /api/team/:id/toggle
 // @desc    Toggle team member active status
 // @access  Private
-router.put('/:id/toggle', auth, async (req, res) => {
+router.put('/:id/toggle', protect, async (req, res) => {
   try {
     const teamMember = await Team.findById(req.params.id);
     if (!teamMember) {

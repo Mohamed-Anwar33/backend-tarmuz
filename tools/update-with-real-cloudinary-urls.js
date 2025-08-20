@@ -63,6 +63,13 @@ async function main() {
               console.log(`Replacing old cloudinary URL for: ${relativePath}`);
               return mapping[relativePath];
             }
+            
+            // If not found with original category, search all mapping keys for this filename
+            const foundKey = Object.keys(mapping).find(key => key.endsWith(filename));
+            if (foundKey) {
+              console.log(`Found filename in different category: ${foundKey} (was looking for: ${relativePath})`);
+              return mapping[foundKey];
+            }
           }
           return imagePath;
         });
@@ -92,6 +99,14 @@ async function main() {
             console.log(`Replacing old cloudinary cover URL for: ${relativePath}`);
             updates.cover = mapping[relativePath];
             hasUpdates = true;
+          } else {
+            // If not found with original category, search all mapping keys for this filename
+            const foundKey = Object.keys(mapping).find(key => key.endsWith(filename));
+            if (foundKey) {
+              console.log(`Found cover filename in different category: ${foundKey} (was looking for: ${relativePath})`);
+              updates.cover = mapping[foundKey];
+              hasUpdates = true;
+            }
           }
         }
       }

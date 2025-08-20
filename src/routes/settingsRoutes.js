@@ -14,6 +14,7 @@ router.post('/test-email', protect, admin, settingsController.testContactEmail);
 
 // Login form options
 // Public read (for login page)
+router.get('/login/public', settingsController.getLoginOptionsPublic);
 router.get('/login-options-public', settingsController.getLoginOptionsPublic);
 // Admin manage
 router.get('/login-options', protect, admin, settingsController.getLoginOptions);
@@ -21,6 +22,7 @@ router.put('/login-options', protect, admin, settingsController.updateLoginOptio
 
 // Branding (logo)
 // Public
+router.get('/branding/public', settingsController.getBrandingPublic);
 router.get('/branding-public', settingsController.getBrandingPublic);
 // Admin
 router.get('/branding', protect, admin, settingsController.getBranding);

@@ -4,6 +4,13 @@ const Team = require('../models/Team');
 const { protect, admin } = require('../middlewares/authMiddleware');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../../uploads/team');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Configure multer for team member images
 const storage = multer.diskStorage({
@@ -102,32 +109,38 @@ router.post('/', protect, admin, upload.single('image'), async (req, res) => {
       isActive
     } = req.body;
 
+    // Validate required fields
+    if (!name || !name_ar || !position || !position_ar) {
+      return res.status(400).json({ msg: 'Name and position are required in both languages' });
+    }
+
     if (!req.file) {
       return res.status(400).json({ msg: 'Team member image is required' });
     }
 
     const teamMember = new Team({
-      name,
-      name_ar,
-      position,
-      position_ar,
-      bio,
-      bio_ar,
+      name: name.trim(),
+      name_ar: name_ar.trim(),
+      position: position.trim(),
+      position_ar: position_ar.trim(),
+      bio: bio ? bio.trim() : '',
+      bio_ar: bio_ar ? bio_ar.trim() : '',
       image: `uploads/team/${req.file.filename}`,
-      email,
-      phone,
-      linkedin,
-      twitter,
-      instagram,
-      order: order || 0,
-      isActive: isActive !== undefined ? isActive : true
+      email: email ? email.trim() : '',
+      phone: phone ? phone.trim() : '',
+      linkedin: linkedin ? linkedin.trim() : '',
+      twitter: twitter ? twitter.trim() : '',
+      instagram: instagram ? instagram.trim() : '',
+      order: parseInt(order) || 0,
+      isActive: isActive === 'true' || isActive === true
     });
 
     await teamMember.save();
+    console.log('Team member created successfully:', teamMember._id);
     res.status(201).json(teamMember);
   } catch (error) {
     console.error('Error creating team member:', error);
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: 'Server error', error: error.message });
   }
 });
 
@@ -157,34 +170,46 @@ router.put('/:id', protect, admin, upload.single('image'), async (req, res) => {
       return res.status(404).json({ msg: 'Team member not found' });
     }
 
-    // Update fields
-    teamMember.name = name || teamMember.name;
-    teamMember.name_ar = name_ar || teamMember.name_ar;
-    teamMember.position = position || teamMember.position;
-    teamMember.position_ar = position_ar || teamMember.position_ar;
-    teamMember.bio = bio !== undefined ? bio : teamMember.bio;
-    teamMember.bio_ar = bio_ar !== undefined ? bio_ar : teamMember.bio_ar;
-    teamMember.email = email !== undefined ? email : teamMember.email;
-    teamMember.phone = phone !== undefined ? phone : teamMember.phone;
-    teamMember.linkedin = linkedin !== undefined ? linkedin : teamMember.linkedin;
-    teamMember.twitter = twitter !== undefined ? twitter : teamMember.twitter;
-    teamMember.instagram = instagram !== undefined ? instagram : teamMember.instagram;
-    teamMember.order = order !== undefined ? order : teamMember.order;
-    teamMember.isActive = isActive !== undefined ? isActive : teamMember.isActive;
+    // Update fields with proper validation
+    if (name) teamMember.name = name.trim();
+    if (name_ar) teamMember.name_ar = name_ar.trim();
+    if (position) teamMember.position = position.trim();
+    if (position_ar) teamMember.position_ar = position_ar.trim();
+    teamMember.bio = bio !== undefined ? bio.trim() : teamMember.bio;
+    teamMember.bio_ar = bio_ar !== undefined ? bio_ar.trim() : teamMember.bio_ar;
+    teamMember.email = email !== undefined ? email.trim() : teamMember.email;
+    teamMember.phone = phone !== undefined ? phone.trim() : teamMember.phone;
+    teamMember.linkedin = linkedin !== undefined ? linkedin.trim() : teamMember.linkedin;
+    teamMember.twitter = twitter !== undefined ? twitter.trim() : teamMember.twitter;
+    teamMember.instagram = instagram !== undefined ? instagram.trim() : teamMember.instagram;
+    teamMember.order = order !== undefined ? parseInt(order) || 0 : teamMember.order;
+    teamMember.isActive = isActive !== undefined ? (isActive === 'true' || isActive === true) : teamMember.isActive;
 
     // Update image if new one is uploaded
     if (req.file) {
+      // Delete old image file if it exists
+      if (teamMember.image && teamMember.image.startsWith('uploads/team/')) {
+        const oldImagePath = path.join(__dirname, '../../', teamMember.image);
+        if (fs.existsSync(oldImagePath)) {
+          try {
+            fs.unlinkSync(oldImagePath);
+          } catch (err) {
+            console.warn('Could not delete old image:', err.message);
+          }
+        }
+      }
       teamMember.image = `uploads/team/${req.file.filename}`;
     }
 
     await teamMember.save();
+    console.log('Team member updated successfully:', teamMember._id);
     res.json(teamMember);
   } catch (error) {
     console.error('Error updating team member:', error);
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Team member not found' });
     }
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: 'Server error', error: error.message });
   }
 });
 
@@ -198,14 +223,28 @@ router.delete('/:id', protect, admin, async (req, res) => {
       return res.status(404).json({ msg: 'Team member not found' });
     }
 
+    // Delete associated image file
+    if (teamMember.image && teamMember.image.startsWith('uploads/team/')) {
+      const imagePath = path.join(__dirname, '../../', teamMember.image);
+      if (fs.existsSync(imagePath)) {
+        try {
+          fs.unlinkSync(imagePath);
+          console.log('Deleted image file:', imagePath);
+        } catch (err) {
+          console.warn('Could not delete image file:', err.message);
+        }
+      }
+    }
+
     await Team.findByIdAndDelete(req.params.id);
+    console.log('Team member deleted successfully:', req.params.id);
     res.json({ msg: 'Team member deleted successfully' });
   } catch (error) {
     console.error('Error deleting team member:', error);
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Team member not found' });
     }
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: 'Server error', error: error.message });
   }
 });
 

@@ -1,4 +1,5 @@
 const Settings = require('../models/Settings');
+const sendEmail = require('../utils/email');
 
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || ''));
 const clean = (v) => String(v || '').trim();
@@ -26,6 +27,28 @@ exports.updateContactRecipient = async (req, res) => {
     res.json({ contactRecipient: updated.contactRecipient || '' });
   } catch (err) {
     res.status(500).json({ msg: 'Internal server error' });
+  }
+};
+
+// Admin-only: send a test email to the configured recipient to validate prod delivery
+exports.testContactEmail = async (req, res) => {
+  try {
+    const doc = await Settings.findOne();
+    const to = clean(doc?.contactRecipient || '');
+    if (!to) {
+      return res.status(400).json({ msg: 'No contact recipient configured in settings' });
+    }
+    const subject = 'Test Contact Email (Server)';
+    const text = 'This is a server-initiated test to verify contact email delivery.';
+    const html = `<p>✅ Test email from server at ${new Date().toISOString()}</p>`;
+    try {
+      await sendEmail(to, subject, text, html);
+      return res.json({ ok: true, to });
+    } catch (e) {
+      return res.status(502).json({ ok: false, to, error: e?.message || 'Email send failed' });
+    }
+  } catch (err) {
+    return res.status(500).json({ msg: 'Internal server error' });
   }
 };
 

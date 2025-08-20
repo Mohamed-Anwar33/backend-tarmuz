@@ -9,6 +9,9 @@ router.get('/contact-recipient', protect, admin, settingsController.getContactRe
 // Update contact recipient email
 router.put('/contact-recipient', protect, admin, settingsController.updateContactRecipient);
 
+// Send a test email to the configured recipient (admin only)
+router.post('/test-email', protect, admin, settingsController.testContactEmail);
+
 // Login form options
 // Public read (for login page)
 router.get('/login-options-public', settingsController.getLoginOptionsPublic);

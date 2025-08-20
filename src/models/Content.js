@@ -9,6 +9,7 @@ const contentSchema = new mongoose.Schema({
   content_ar: String, // محتوى إضافي
   content_en: String, // محتوى إضافي
   image: String, // URL للصورة
+  images: [String], // Array of image URLs for slideshow
   video: String, // URL لفيديو (إضافي)
   isActive: { type: Boolean, default: true }, // للتحكم في تفعيل الأقسام (خاصة المدونة)
   services: [{ // لقسم Services

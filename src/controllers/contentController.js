@@ -1,4 +1,6 @@
 const Content = require('../models/Content');
+const multer = require('multer');
+const path = require('path');
 
 // Get all content sections
 exports.getAllContent = async (req, res) => {
@@ -26,9 +28,22 @@ exports.getContent = async (req, res) => {
 exports.updateContent = async (req, res) => {
   const { type } = req.params;
   try {
+    // Handle file uploads
+    const updateData = { ...req.body, updatedAt: Date.now() };
+    
+    // Handle multiple image uploads
+    if (req.files && req.files.length > 0) {
+      updateData.images = req.files.map(file => `/uploads/content/${file.filename}`);
+    }
+    
+    // Handle single image upload
+    if (req.file) {
+      updateData.image = `/uploads/content/${req.file.filename}`;
+    }
+    
     const content = await Content.findOneAndUpdate(
       { type }, 
-      { ...req.body, updatedAt: Date.now() }, 
+      updateData, 
       { new: true, upsert: true, runValidators: true }
     );
     res.json(content);
@@ -44,7 +59,19 @@ exports.updateContent = async (req, res) => {
 // Create new content section
 exports.createContent = async (req, res) => {
   try {
-    const content = new Content(req.body);
+    const contentData = { ...req.body };
+    
+    // Handle multiple image uploads
+    if (req.files && req.files.length > 0) {
+      contentData.images = req.files.map(file => `/uploads/content/${file.filename}`);
+    }
+    
+    // Handle single image upload
+    if (req.file) {
+      contentData.image = `/uploads/content/${req.file.filename}`;
+    }
+    
+    const content = new Content(contentData);
     await content.save();
     res.status(201).json(content);
   } catch (err) {

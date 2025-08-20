@@ -1,9 +1,21 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
+const { v2: cloudinary } = require('cloudinary');
 require('dotenv').config();
+
+// Configure Cloudinary
+cloudinary.config({
+  cloudinary_url: process.env.CLOUDINARY_URL || 'cloudinary://693958361264978:ouRfBFDF-05AFts5VNF-vExDgVI@dvhse3qgv'
+});
 
 async function main() {
   try {
+    // Test Cloudinary connection
+    console.log('Testing Cloudinary connection...');
+    const cloudinaryInfo = await cloudinary.api.ping();
+    console.log('✅ Cloudinary connected successfully:', cloudinaryInfo);
+    console.log('Cloud name:', cloudinary.config().cloud_name);
+    
     await mongoose.connect(process.env.MONGO_URI);
     console.log('Connected to MongoDB');
 

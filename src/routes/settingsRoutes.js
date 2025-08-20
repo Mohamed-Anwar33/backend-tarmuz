@@ -28,4 +28,11 @@ router.get('/branding-public', settingsController.getBrandingPublic);
 router.get('/branding', protect, admin, settingsController.getBranding);
 router.put('/branding', protect, admin, settingsController.updateBranding);
 
+// General Settings
+// Public (for frontend to check section visibility)
+router.get('/public', settingsController.getSettingsPublic);
+// Admin
+router.get('/', protect, admin, settingsController.getSettings);
+router.put('/', protect, admin, settingsController.updateSettings);
+
 module.exports = router;

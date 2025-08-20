@@ -132,3 +132,85 @@ exports.updateBranding = async (req, res) => {
     return res.status(500).json({ msg: 'Internal server error' });
   }
 };
+
+// ---- General Settings ----
+const mapSettings = (doc) => ({
+  contactRecipient: clean(doc?.contactRecipient || ''),
+  loginShowEmail: Boolean(doc?.loginShowEmail),
+  loginEnableEmail: Boolean(doc?.loginEnableEmail ?? true),
+  logoUrl: clean(doc?.logoUrl || ''),
+  logoUrlScrolled: clean(doc?.logoUrlScrolled || ''),
+  showTeamSection: Boolean(doc?.showTeamSection ?? true),
+});
+
+// Public settings for frontend consumption
+exports.getSettingsPublic = async (req, res) => {
+  try {
+    const doc = await Settings.findOne();
+    // Only return public settings
+    return res.json({
+      loginShowEmail: Boolean(doc?.loginShowEmail),
+      loginEnableEmail: Boolean(doc?.loginEnableEmail ?? true),
+      logoUrl: clean(doc?.logoUrl || ''),
+      logoUrlScrolled: clean(doc?.logoUrlScrolled || ''),
+      showTeamSection: Boolean(doc?.showTeamSection ?? true),
+    });
+  } catch (err) {
+    return res.status(500).json({ msg: 'Internal server error' });
+  }
+};
+
+// Admin get all settings
+exports.getSettings = async (req, res) => {
+  try {
+    const doc = await Settings.findOne();
+    return res.json(mapSettings(doc));
+  } catch (err) {
+    return res.status(500).json({ msg: 'Internal server error' });
+  }
+};
+
+// Admin update settings
+exports.updateSettings = async (req, res) => {
+  try {
+    const updateData = {};
+    
+    if (req.body.contactRecipient !== undefined) {
+      const email = clean(req.body.contactRecipient.toLowerCase());
+      if (email && !isEmail(email)) {
+        return res.status(400).json({ msg: 'Invalid email' });
+      }
+      updateData.contactRecipient = email;
+    }
+    
+    if (req.body.loginShowEmail !== undefined) {
+      updateData.loginShowEmail = Boolean(req.body.loginShowEmail);
+    }
+    
+    if (req.body.loginEnableEmail !== undefined) {
+      updateData.loginEnableEmail = Boolean(req.body.loginEnableEmail);
+    }
+    
+    if (req.body.logoUrl !== undefined) {
+      updateData.logoUrl = clean(req.body.logoUrl);
+    }
+    
+    if (req.body.logoUrlScrolled !== undefined) {
+      updateData.logoUrlScrolled = clean(req.body.logoUrlScrolled);
+    }
+    
+    if (req.body.showTeamSection !== undefined) {
+      updateData.showTeamSection = Boolean(req.body.showTeamSection);
+    }
+    
+    const updated = await Settings.findOneAndUpdate(
+      {},
+      updateData,
+      { new: true, upsert: true }
+    );
+    
+    return res.json(mapSettings(updated));
+  } catch (err) {
+    return res.status(500).json({ msg: 'Internal server error' });
+  }
+};

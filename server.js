@@ -20,6 +20,7 @@ const blogRoutes = require('./src/routes/blogRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const uploadRoutes = require('./src/routes/uploadRoutes');
 const settingsRoutes = require('./src/routes/settingsRoutes');
+const teamRoutes = require('./src/routes/teamRoutes');
 
 dotenv.config();
 const app = express();
@@ -191,6 +192,7 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/team', teamRoutes);
 
 // Health and readiness endpoints
 app.get('/healthz', (req, res) => res.status(200).json({ status: 'ok' }));

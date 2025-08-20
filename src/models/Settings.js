@@ -26,6 +26,11 @@ const SettingsSchema = new mongoose.Schema({
     trim: true,
     default: '',
   },
+  // Team section settings
+  showTeamSection: {
+    type: Boolean,
+    default: true,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Settings', SettingsSchema);

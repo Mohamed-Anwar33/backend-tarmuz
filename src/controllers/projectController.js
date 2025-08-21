@@ -24,6 +24,24 @@ const toPublicId = (absPath, filename) => {
   return `${baseFolder}/${subFolder}/${nameNoExt}`;
 };
 
+// Extract Cloudinary public_id from a secure_url. Assumes uploads under baseFolder.
+const publicIdFromUrl = (url) => {
+  try {
+    // Example: https://res.cloudinary.com/<cloud>/image/upload/v1699999999/tarmuz/uploads/general/name.jpg
+    const u = new URL(url);
+    const parts = u.pathname.split('/');
+    const uploadIdx = parts.findIndex((p) => p === 'upload');
+    if (uploadIdx === -1) return null;
+    const afterUpload = parts.slice(uploadIdx + 1).join('/');
+    // Remove version segment if present (v123456)
+    const after = afterUpload.replace(/^v\d+\//, '');
+    const noExt = after.replace(/\.[a-zA-Z0-9]+$/, '');
+    return noExt;
+  } catch {
+    return null;
+  }
+};
+
 // Get all projects
 exports.getProjects = async (req, res) => {
   try {
@@ -101,6 +119,17 @@ exports.updateProject = async (req, res) => {
   try {
     const updateData = { ...req.body, updatedAt: Date.now() };
 
+    // Normalize existingImages from multipart form: can be JSON string or repeated fields
+    let existingImages = undefined;
+    if (req.body.existingImages !== undefined) {
+      if (typeof req.body.existingImages === 'string') {
+        try { existingImages = JSON.parse(req.body.existingImages); } catch { existingImages = []; }
+      } else if (Array.isArray(req.body.existingImages)) {
+        existingImages = req.body.existingImages;
+      }
+      if (!Array.isArray(existingImages)) existingImages = [];
+    }
+
     // Auto-create category if it doesn't exist and category is being updated
     if (updateData.category) {
       await createOrGetCategory(updateData.category, updateData.category_ar);
@@ -123,17 +152,48 @@ exports.updateProject = async (req, res) => {
           await unlinkSafe(abs);
         }
       }
-      updateData.images = uploadedUrls;
-      if (!updateData.cover && uploadedUrls.length > 0) {
-        updateData.cover = uploadedUrls[0];
+      // If client sent existingImages, merge with uploads, else keep default behavior (replace)
+      if (existingImages) {
+        updateData.images = [...existingImages, ...uploadedUrls];
+      } else {
+        updateData.images = uploadedUrls;
+      }
+      if (!updateData.cover && (updateData.images?.length || 0) > 0) {
+        updateData.cover = updateData.images[0];
       }
     }
 
-    const project = await Project.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
+    // If existingImages provided, compute deletions compared to current project and remove from Cloudinary
+    let project;
+    if (existingImages) {
+      const current = await Project.findById(req.params.id);
+      if (!current) return res.status(404).json({ msg: 'Project not found' });
+      const toKeep = new Set(existingImages);
+      const removed = (current.images || []).filter((img) => !toKeep.has(img));
+      for (const url of removed) {
+        const pid = publicIdFromUrl(url);
+        if (pid) {
+          try { await cloudinary.uploader.destroy(pid); } catch (_) {}
+        }
+      }
+      // If no new uploads were provided but existingImages is, ensure updateData.images is set
+      if (!updateData.images) updateData.images = existingImages;
+      // Adjust cover if necessary
+      if (updateData.images?.length > 0 && (!updateData.cover || !toKeep.has(updateData.cover))) {
+        updateData.cover = updateData.images[0];
+      }
+      project = await Project.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true, runValidators: true }
+      );
+    } else {
+      project = await Project.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true, runValidators: true }
+      );
+    }
 
     if (!project) {
       return res.status(404).json({ msg: 'Project not found' });

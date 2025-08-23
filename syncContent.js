@@ -155,96 +155,10 @@ const syncContent = async () => {
         type: 'services',
         title_ar: 'خدماتنا',
         title_en: 'Our Services',
-        description_ar: 'نقدم مجموعة شاملة من الخدمات الاستشارية المتخصصة',
-        description_en: 'We provide a comprehensive range of specialized consulting services',
-        content_ar: 'تطوير العلامات التجارية، الاستشارات التسويقية، الاستشارات التشغيلية، الاستشارات التقنية',
-        content_en: 'Brand Development, Marketing Consulting, Operations Consulting, Technical Consulting',
-        services: [
-          {
-            name_ar: 'تطوير العلامات التجارية',
-            name_en: 'Brand Development',
-            icon: 'brand_development',
-            description_ar: 'بناء وتطوير العلامات التجارية اعتمادًا على هوية واضحة، قيم أساسية، استراتيجية مميزة، وتجربة عميل متكاملة.',
-            description_en: 'Building and developing brands based on clear identity, core values, distinctive strategy, and integrated customer experience.'
-          },
-          {
-            name_ar: 'استشارات تسويقية',
-            name_en: 'Marketing Consulting',
-            icon: 'marketing_consulting',
-            description_ar: 'إجراء مراجعات شاملة لاستراتيجيات التسويق الحالية وتطوير خطط إبداعية وعملية تعزز المبيعات، الإيرادات، والرضا العام.',
-            description_en: 'Conducting comprehensive reviews of current marketing strategies and developing creative and practical plans that enhance sales, revenue, and overall satisfaction.'
-          },
-          {
-            name_ar: 'استشارات تشغيلية',
-            name_en: 'Operations Consulting',
-            icon: 'operations_consulting',
-            description_ar: 'تقديم توصيات عملية لتحسين الإدارة التشغيلية، جودة المنتجات، ورضا العملاء مما يزيد من المبيعات والأرباح.',
-            description_en: 'Providing practical recommendations to improve operational management, product quality, and customer satisfaction, thereby increasing sales and profits.'
-          },
-          {
-            name_ar: 'استشارات تقنية',
-            name_en: 'Technical Consulting',
-            icon: 'technical_consulting',
-            description_ar: 'تصميم وتنفيذ حلول تقنية متكاملة وفعالة من حيث التكلفة لتبسيط العمليات وتحسين تجربة العملاء.',
-            description_en: 'Designing and implementing integrated and cost-effective technical solutions to simplify operations and improve customer experience.'
-          },
-          {
-            name_ar: 'توظيف وتدريب',
-            name_en: 'Recruitment & Training',
-            icon: 'training',
-            description_ar: 'تطوير وإدارة برامج تدريب حديثة ترفع من كفاءة الموظفين وتزيد من رضا العملاء.',
-            description_en: 'Developing and managing modern training programs that enhance employee efficiency and increase customer satisfaction.'
-          },
-          {
-            name_ar: 'إدارة العقود',
-            name_en: 'Contract Management',
-            icon: 'contracts',
-            description_ar: 'إدارة العقود من صياغتها حتى تدقيقها بما يضمن الأمان القانوني والمالي للمشاريع.',
-            description_en: 'Managing contracts from drafting to auditing to ensure legal and financial security for projects.'
-          },
-          {
-            name_ar: 'دراسة الجدوى والتخطيط الاستراتيجي',
-            name_en: 'Feasibility Study & Strategic Planning',
-            icon: 'feasibility',
-            description_ar: 'إعداد دراسات جدوى اقتصادية متكاملة تشمل السوق، المنافسين، العملاء، والعوائد المتوقعة.',
-            description_en: 'Preparing comprehensive economic feasibility studies including market, competitors, customers, and expected returns.'
-          },
-          {
-            name_ar: 'التصميم الداخلي',
-            name_en: 'Interior Design',
-            icon: 'interior',
-            description_ar: 'حلول داخلية تجمع بين الوظيفة والجمال.',
-            description_en: 'Interior solutions that combine function and beauty.'
-          },
-          {
-            name_ar: 'التصميم الخارجي',
-            name_en: 'Exterior Design',
-            icon: 'exterior',
-            description_ar: 'واجهات وهياكل حديثة ومستدامة.',
-            description_en: 'Modern and sustainable facades and structures.'
-          },
-          {
-            name_ar: 'تصميم المناظر الطبيعية',
-            name_en: 'Landscape Design',
-            icon: 'landscape',
-            description_ar: 'إنشاء مساحات خضراء ملهمة.',
-            description_en: 'Creating inspiring green spaces.'
-          },
-          {
-            name_ar: 'التخطيط الحضري',
-            name_en: 'Urban Planning',
-            icon: 'urban',
-            description_ar: 'بناء تجارب حضرية تتمحور حول الإنسان.',
-            description_en: 'Building human-centered urban experiences.'
-          },
-          {
-            name_ar: 'إدارة علاقات الشركات',
-            name_en: 'Corporate Relations Management',
-            icon: 'corporate_relations',
-            description_ar: 'تطوير استراتيجيات لبناء روابط قوية مع العملاء والشركاء والمستثمرين.',
-            description_en: 'Developing strategies to build strong relationships with clients, partners, and investors.'
-          }
-        ]
+        description_ar: 'نقدم مجموعة شاملة من الخدمات الهندسية والمعمارية',
+        description_en: 'We provide a comprehensive range of engineering and architectural services',
+        content_ar: 'التصميم المعماري، التصميم الداخلي، التخطيط العمراني، تصميم الهويات البصرية',
+        content_en: 'Architectural Design, Interior Design, Urban Planning, Visual Identity Design'
       }
     ];
 
@@ -253,14 +167,6 @@ const syncContent = async () => {
       if (!existingContent) {
         await Content.create(contentData);
         console.log(`✅ Created content section: ${contentData.type}`);
-      } else if (contentData.type === 'services') {
-        // Update services section to replace old services with new ones
-        await Content.findOneAndUpdate(
-          { type: 'services' },
-          contentData,
-          { new: true }
-        );
-        console.log(`✅ Updated services section with new consulting services`);
       }
     }
 

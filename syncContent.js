@@ -187,6 +187,62 @@ const syncContent = async () => {
             icon: 'technical_consulting',
             description_ar: 'تصميم وتنفيذ حلول تقنية متكاملة وفعالة من حيث التكلفة لتبسيط العمليات وتحسين تجربة العملاء.',
             description_en: 'Designing and implementing integrated and cost-effective technical solutions to simplify operations and improve customer experience.'
+          },
+          {
+            name_ar: 'توظيف وتدريب',
+            name_en: 'Recruitment & Training',
+            icon: 'training',
+            description_ar: 'تطوير وإدارة برامج تدريب حديثة ترفع من كفاءة الموظفين وتزيد من رضا العملاء.',
+            description_en: 'Developing and managing modern training programs that enhance employee efficiency and increase customer satisfaction.'
+          },
+          {
+            name_ar: 'إدارة العقود',
+            name_en: 'Contract Management',
+            icon: 'contracts',
+            description_ar: 'إدارة العقود من صياغتها حتى تدقيقها بما يضمن الأمان القانوني والمالي للمشاريع.',
+            description_en: 'Managing contracts from drafting to auditing to ensure legal and financial security for projects.'
+          },
+          {
+            name_ar: 'دراسة الجدوى والتخطيط الاستراتيجي',
+            name_en: 'Feasibility Study & Strategic Planning',
+            icon: 'feasibility',
+            description_ar: 'إعداد دراسات جدوى اقتصادية متكاملة تشمل السوق، المنافسين، العملاء، والعوائد المتوقعة.',
+            description_en: 'Preparing comprehensive economic feasibility studies including market, competitors, customers, and expected returns.'
+          },
+          {
+            name_ar: 'التصميم الداخلي',
+            name_en: 'Interior Design',
+            icon: 'interior',
+            description_ar: 'حلول داخلية تجمع بين الوظيفة والجمال.',
+            description_en: 'Interior solutions that combine function and beauty.'
+          },
+          {
+            name_ar: 'التصميم الخارجي',
+            name_en: 'Exterior Design',
+            icon: 'exterior',
+            description_ar: 'واجهات وهياكل حديثة ومستدامة.',
+            description_en: 'Modern and sustainable facades and structures.'
+          },
+          {
+            name_ar: 'تصميم المناظر الطبيعية',
+            name_en: 'Landscape Design',
+            icon: 'landscape',
+            description_ar: 'إنشاء مساحات خضراء ملهمة.',
+            description_en: 'Creating inspiring green spaces.'
+          },
+          {
+            name_ar: 'التخطيط الحضري',
+            name_en: 'Urban Planning',
+            icon: 'urban',
+            description_ar: 'بناء تجارب حضرية تتمحور حول الإنسان.',
+            description_en: 'Building human-centered urban experiences.'
+          },
+          {
+            name_ar: 'إدارة علاقات الشركات',
+            name_en: 'Corporate Relations Management',
+            icon: 'corporate_relations',
+            description_ar: 'تطوير استراتيجيات لبناء روابط قوية مع العملاء والشركاء والمستثمرين.',
+            description_en: 'Developing strategies to build strong relationships with clients, partners, and investors.'
           }
         ]
       }

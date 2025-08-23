@@ -155,10 +155,40 @@ const syncContent = async () => {
         type: 'services',
         title_ar: 'خدماتنا',
         title_en: 'Our Services',
-        description_ar: 'نقدم مجموعة شاملة من الخدمات الهندسية والمعمارية',
-        description_en: 'We provide a comprehensive range of engineering and architectural services',
-        content_ar: 'التصميم المعماري، التصميم الداخلي، التخطيط العمراني، تصميم الهويات البصرية',
-        content_en: 'Architectural Design, Interior Design, Urban Planning, Visual Identity Design'
+        description_ar: 'نقدم مجموعة شاملة من الخدمات الاستشارية المتخصصة',
+        description_en: 'We provide a comprehensive range of specialized consulting services',
+        content_ar: 'تطوير العلامات التجارية، الاستشارات التسويقية، الاستشارات التشغيلية، الاستشارات التقنية',
+        content_en: 'Brand Development, Marketing Consulting, Operations Consulting, Technical Consulting',
+        services: [
+          {
+            name_ar: 'تطوير العلامات التجارية',
+            name_en: 'Brand Development',
+            icon: 'brand_development',
+            description_ar: 'بناء وتطوير العلامات التجارية اعتمادًا على هوية واضحة، قيم أساسية، استراتيجية مميزة، وتجربة عميل متكاملة.',
+            description_en: 'Building and developing brands based on clear identity, core values, distinctive strategy, and integrated customer experience.'
+          },
+          {
+            name_ar: 'استشارات تسويقية',
+            name_en: 'Marketing Consulting',
+            icon: 'marketing_consulting',
+            description_ar: 'إجراء مراجعات شاملة لاستراتيجيات التسويق الحالية وتطوير خطط إبداعية وعملية تعزز المبيعات، الإيرادات، والرضا العام.',
+            description_en: 'Conducting comprehensive reviews of current marketing strategies and developing creative and practical plans that enhance sales, revenue, and overall satisfaction.'
+          },
+          {
+            name_ar: 'استشارات تشغيلية',
+            name_en: 'Operations Consulting',
+            icon: 'operations_consulting',
+            description_ar: 'تقديم توصيات عملية لتحسين الإدارة التشغيلية، جودة المنتجات، ورضا العملاء مما يزيد من المبيعات والأرباح.',
+            description_en: 'Providing practical recommendations to improve operational management, product quality, and customer satisfaction, thereby increasing sales and profits.'
+          },
+          {
+            name_ar: 'استشارات تقنية',
+            name_en: 'Technical Consulting',
+            icon: 'technical_consulting',
+            description_ar: 'تصميم وتنفيذ حلول تقنية متكاملة وفعالة من حيث التكلفة لتبسيط العمليات وتحسين تجربة العملاء.',
+            description_en: 'Designing and implementing integrated and cost-effective technical solutions to simplify operations and improve customer experience.'
+          }
+        ]
       }
     ];
 
@@ -167,6 +197,14 @@ const syncContent = async () => {
       if (!existingContent) {
         await Content.create(contentData);
         console.log(`✅ Created content section: ${contentData.type}`);
+      } else if (contentData.type === 'services') {
+        // Update services section to replace old services with new ones
+        await Content.findOneAndUpdate(
+          { type: 'services' },
+          contentData,
+          { new: true }
+        );
+        console.log(`✅ Updated services section with new consulting services`);
       }
     }
 

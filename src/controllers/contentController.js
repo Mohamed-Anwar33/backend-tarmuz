@@ -254,3 +254,30 @@ exports.deleteContent = async (req, res) => {
     res.status(500).json({ msg: err.message });
   }
 };
+
+// Reorder services
+exports.reorderServices = async (req, res) => {
+  try {
+    const { services } = req.body;
+    
+    if (!Array.isArray(services)) {
+      return res.status(400).json({ msg: 'Services must be an array' });
+    }
+
+    // Add order field to each service based on array index
+    const orderedServices = services.map((service, index) => ({
+      ...service,
+      order: index + 1
+    }));
+
+    const content = await Content.findOneAndUpdate(
+      { type: 'services' },
+      { services: orderedServices, updatedAt: Date.now() },
+      { new: true, upsert: true, runValidators: true }
+    );
+
+    res.json(content);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};

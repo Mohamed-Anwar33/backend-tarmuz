@@ -18,6 +18,7 @@ const contentSchema = new mongoose.Schema({
     icon: String,
     description_ar: String,
     description_en: String,
+    order: { type: Number, default: 0 }, // ترتيب الخدمة
   }],
   // نصوص قابلة للتحرير لقسم "نبذة عنا": الرؤية، الفريق، التميز
   about_features: {

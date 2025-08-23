@@ -38,6 +38,7 @@ router.get('/:type', contentController.getContent);
 router.use(protect);
 router.post('/', upload.array('images', 10), contentController.createContent);
 router.put('/:type', upload.array('images', 10), contentController.updateContent);
+router.put('/services/reorder', contentController.reorderServices);
 router.delete('/:id', contentController.deleteContent);
 
 module.exports = router;

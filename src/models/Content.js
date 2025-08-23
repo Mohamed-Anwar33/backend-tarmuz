@@ -40,6 +40,25 @@ const contentSchema = new mongoose.Schema({
       description_ar: String,
       description_en: String,
     },
+    // New editable blocks
+    mission: {
+      title_ar: String,
+      title_en: String,
+      description_ar: String,
+      description_en: String,
+    },
+    goal: {
+      title_ar: String,
+      title_en: String,
+      description_ar: String,
+      description_en: String,
+    },
+    values: {
+      title_ar: String,
+      title_en: String,
+      items_ar: [String],
+      items_en: [String],
+    },
   },
   contact: { // بيانات التواصل
     email: String,
